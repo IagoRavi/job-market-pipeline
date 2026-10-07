@@ -118,4 +118,4 @@ llm:
 digest:
   min_score: 60
   max_per_region: 10                # Europa, Remoto global, Brasil, Outras
-  report_url: ""                    # link do GitHub Pages, ex.: https://iagoravi.github.io/robo-vagas/
+  report_url: "https://iagoravi.github.io/job-market-pipeline/"  # link do GitHub Pages, ex.: https://iagoravi.github.io/robo-vagas/
