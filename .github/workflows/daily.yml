@@ -1,0 +1,67 @@
+name: Robô de vagas
+
+on:
+  schedule:
+    - cron: "0 9 * * 1-5"   # seg–sex, 06h de Brasília
+  workflow_dispatch:         # botão "Run workflow" para rodar na hora
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  models: read
+
+concurrency:
+  group: robo-vagas
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Coletar, triar e enviar digest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          DIGEST_TO: ${{ secrets.DIGEST_TO }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          CONFIG_PRIVADO: ${{ secrets.CONFIG_PRIVADO }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python -m job_bot.main
+      - name: Salvar banco e digest no repositório
+        run: |
+          git config user.name "robo-vagas"
+          git config user.email "robo-vagas@users.noreply.github.com"
+          git add data/ digests/
+          git diff --staged --quiet || git commit -m "vagas $(date -u +%F)"
+          git push
+      - name: Preparar relatório para o GitHub Pages
+        run: |
+          mkdir -p site
+          cp data/relatorio.html site/index.html
+          touch site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Publicar no GitHub Pages
+        id: pages
+        uses: actions/deploy-pages@v4
+        continue-on-error: true   # se o Pages não estiver ativado, o resto do robô segue normal
