@@ -49,11 +49,46 @@ Sem nenhum secret, o robô já funciona: coleta, faz a triagem heurística e gra
 ```bash
 pip install -r requirements.txt
 python -m job_bot.main --fixtures tests/fixtures.json --db /tmp/teste.db
+python -m tests.test_linkedin      # testes do leitor de e-mails do LinkedIn
 ```
 
 ## Status das vagas (coluna `status`)
 `new` · `below_floor` · `discard` · `applied` · `interview` · `rejected` · `offer` · `ignored`.
 A marcação de candidatura entra na próxima fase, com a geração de CV e carta por vaga.
+
+## Foco no LinkedIn (padrão desde out/2026)
+As outras fontes estão desligadas no `config.yaml` (o código continua lá; basta `enabled: true`).
+A qualidade das vagas depende dos **alertas** que você cria no LinkedIn, porque eles são o filtro de entrada:
+
+| Alerta | Palavras-chave | Local | Filtros |
+|---|---|---|---|
+| Europa remoto | `"power bi" OR "BI developer" OR "business intelligence"` | União Europeia | Remoto · Pleno-sênior · Últimas 24h |
+| Portugal | `"power bi" OR "analista de dados" OR "data analyst"` | Portugal | Remoto e híbrido |
+| Alemanha/Holanda c/ visto | `"power bi" OR "BI developer"` | Alemanha (repita p/ Holanda) | Pleno-sênior |
+| Brasil remoto | `"power bi" OR "analista de BI" OR "analista de dados"` | Brasil | Remoto |
+| Brasília | `"power bi" OR "analista de dados"` | Brasília | Presencial e híbrido |
+
+Teste a busca antes de salvar o alerta; frequência **diária**, envio **por e-mail**.
+Os alertas trazem título, empresa, local, modelo (remoto/híbrido), salário quando informado e se a vaga
+aceita **Candidatura simplificada**. O robô não acessa o LinkedIn: só lê esses e-mails no seu Gmail.
+
+### Candidaturas automáticas
+Quando você se candidata pelo LinkedIn, ele manda um e-mail "sua candidatura foi enviada para…".
+O robô lê esse e-mail e acrescenta sozinho a linha `aplicado` em `data/candidaturas.csv`
+(observação `auto: e-mail do LinkedIn`). Desligue com `track_applications: false`.
+
+### Kit de candidatura
+No relatório, o botão **kit** de cada vaga abre:
+- qual currículo usar (BI, Data Analyst ou português);
+- dois textos de apresentação (EN/PT) já com o nome da vaga e da empresa, editáveis e com contador de caracteres;
+- respostas prontas para as perguntas comuns da Candidatura simplificada (`kit.yaml`).
+
+Respostas privadas (telefone, pretensão salarial) ficam em `config.local.yaml → kit_private` e
+**só aparecem no relatório gerado na sua máquina**, nunca na página pública.
+
+### Vagas antigas ou encerradas
+- O relatório mostra a idade da vaga e, por padrão, só as dos últimos 21 dias (`report.max_age_days`).
+- Vaga preenchida ou com link quebrado: botão **encerrada** → cole a linha em `data/candidaturas.csv`.
 
 ## Registrar candidaturas
 1. No relatório, clique em **copiar p/ candidaturas** na vaga em que você se candidatou.
@@ -62,6 +97,6 @@ A marcação de candidatura entra na próxima fase, com a geração de CV e cart
    id,status,data,observacao
    n26:7012345,aplicado,2026-10-07,indicação do fulano
    ```
-3. Status aceitos: `aplicado`, `entrevista`, `recusado`, `oferta`, `ignorar`. Para avançar uma vaga, edite o status na mesma linha.
+3. Status aceitos: `aplicado`, `entrevista`, `recusado`, `oferta`, `encerrada`, `ignorar`. Para avançar uma vaga, edite o status na mesma linha.
 4. Na próxima execução, a vaga sai do digest e aparece no filtro **Minhas candidaturas** do relatório.
    As colunas `status`, `applied_at` e `notes` também vão para o `data/jobs.csv` (base do painel Power BI do funil).

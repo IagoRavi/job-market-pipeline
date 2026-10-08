@@ -10,7 +10,7 @@ EU_HINTS = ["europe", "european union", "emea", "cet", "cest", "portugal", "lisb
             "spain", "madrid", "barcelona", "netherlands", "amsterdam", "ireland", "dublin", "france", "paris",
             "austria", "vienna", "poland", "warsaw", "belgium", "italy", "sweden", "denmark", "finland",
             "czech", "united kingdom", "london", "(gb)", "(nl)", "(es)", "(fr)", "(at)"] + DE_HINTS
-BR_HINTS = ["brasil", "brazil", "(br)", "são paulo", "sao paulo", "rio de janeiro", "belo horizonte",
+BR_HINTS = ["brasil", "brazil", "federal district", "(br)", "são paulo", "sao paulo", "rio de janeiro", "belo horizonte",
             "brasília", "brasilia", "distrito federal", "curitiba", "porto alegre", "recife", "salvador",
             "florianópolis", "fortaleza", "goiânia", "campinas"]
 GLOBAL_HINTS = ["worldwide", "anywhere", "global", "latam", "latin america", "americas"]
@@ -36,7 +36,7 @@ def score(job, cfg, rates=None):
     kw, el, sal, br = cfg["keywords"], cfg["eligibility"], cfg["salary"], cfg.get("brazil", {})
     title = norm(job["title"])
     text = norm(" ".join([job["title"], job["description"], job["tags"], job["location"]]))
-    loc = norm(job["location"])
+    loc = norm(job["location"]).replace("federal district", "distrito federal")
     region = region_of(job)
     reasons, s = [], 0
 
@@ -57,6 +57,8 @@ def score(job, cfg, rates=None):
     # LinkedIn: o alerta só traz título/empresa/local; os filtros do alerta são seus
     if job["source"] == "linkedin":
         s += 20; reasons.append("alerta LinkedIn (seus filtros)")
+        if "candidatura simplificada" in job["tags"]:
+            s += 5; reasons.append("candidatura simplificada")
 
     # elegibilidade por região
     if region == "BR":

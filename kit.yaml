@@ -1,0 +1,85 @@
+# ============================================================
+# Kit de candidatura — aparece no relatório (botão "kit" em cada vaga)
+# {title} e {company} são trocados pelo nome da vaga e da empresa.
+# Tudo aqui é público (vai para o GitHub Pages). Telefone, pretensão
+# salarial e afins ficam em config.local.yaml → kit_private.
+# ============================================================
+
+cv:
+  BI: CV_Iago_Ravi_EN_BI_Developer
+  DA: CV_Iago_Ravi_EN_Data_Analyst
+  PT: CV_Iago_PT
+
+texts:
+  en:
+    - label: Técnica
+      hint: Time de dados/TI que entende de SQL, Power BI e Python
+      body: |
+        I'm a Data Analyst / BI Developer with 7+ years of experience turning data into decisions, currently at the Court of Audit of the Federal District in Brazil.
+
+        I work end to end: SQL Server (T-SQL) and Power Query transformations, dimensional modeling (star schema) and Power BI delivery with advanced DAX and Row-Level Security in production. I built and maintain 20+ corporate dashboards used by 100+ auditors and managers, plus 10 public transparency dashboards tracking BRL 590M+ (≈ €100M) in public spending.
+
+        I also use Python in production: as a freelancer, I'm building an IFRS 17 contract validation engine with Python and FastAPI for an insurance client. I led the data architecture of a public transparency portal (ETL → REST API → front-end), applying LGPD, Brazil's GDPR-equivalent law, with personal-data masking.
+
+        I'm based in Brazil with 4–5 hours of overlap with CET, and I'd be glad to bring this experience to the {title} role at {company}.
+    - label: Impacto
+      hint: RH ou área de negócio; vaga fala mais de "apoiar decisões"
+      body: |
+        For the past 7+ years, my job has been making data answer the questions of the people who decide.
+
+        At the Court of Audit of Brazil's Federal District, I built and maintain 20+ Power BI dashboards used by 100+ auditors and managers, and 10 public transparency dashboards tracking BRL 590M+ (≈ €100M) in public spending, with access control and personal-data protection under LGPD (Brazil's GDPR).
+
+        My strength is bridging business and tech: I understand the problem with the team, organize the data (SQL, Python, modeling) and deliver something people actually use. I'm also building, as a freelancer, a Python system that validates insurance contracts against the IFRS 17 standard.
+
+        I'd be glad to bring this combination to {company} as {title}: reliable data, well-defined KPIs and dashboards that become part of how decisions are made.
+  pt:
+    - label: Técnica
+      hint: Time de dados/TI
+      body: |
+        Sou Analista de Dados com mais de 7 anos de experiência transformando dados em decisões, hoje no Tribunal de Contas do DF.
+
+        Trabalho de ponta a ponta: modelo e transformo dados em SQL Server (T-SQL) e Power Query, estruturo modelos dimensionais (esquema estrela) e entrego painéis em Power BI com DAX avançado e Row-Level Security em produção. Desenvolvi e mantenho mais de 20 dashboards corporativos usados por mais de 100 auditores e gestores, além de 10 painéis públicos de transparência que acompanham mais de R$ 590 milhões em gastos.
+
+        Também uso Python em produção: como freelancer, desenvolvo um motor de validação contábil para a norma IFRS 17 com Python e FastAPI. Fui responsável técnico pela arquitetura de dados do novo Portal da Transparência do TCDF (ETL → API REST → front-end), aplicando LGPD com mascaramento de dados pessoais.
+
+        Para a vaga de {title} ({company}), posso trazer dados confiáveis, indicadores claros e painéis que as pessoas de fato usam para decidir.
+    - label: Impacto
+      hint: RH ou área de negócio
+      body: |
+        Há mais de 7 anos meu trabalho é fazer os dados responderem às perguntas de quem decide.
+
+        No Tribunal de Contas do DF, criei e mantenho mais de 20 painéis em Power BI usados por mais de 100 auditores e gestores, e 10 painéis públicos de transparência que acompanham mais de R$ 590 milhões em gastos públicos, com controle de acesso e proteção de dados pessoais conforme a LGPD.
+
+        Meu diferencial é unir negócio e técnica: entendo o problema com a área, organizo os dados (SQL, Python, modelagem) e entrego algo simples de usar. Também desenvolvo, como freelancer, um sistema em Python que valida contratos de seguros pela norma internacional IFRS 17.
+
+        Para a vaga de {title} ({company}), posso trazer essa combinação: dados confiáveis, indicadores bem definidos e painéis que viram rotina na tomada de decisão.
+
+# Perguntas comuns da Candidatura simplificada. CONFIRA os números antes de usar.
+answers:
+  en:
+    - ["Years of experience with Power BI", "4"]
+    - ["Years of experience with SQL", "4"]
+    - ["Years of experience with DAX", "4"]
+    - ["Years of experience with Python", "2"]
+    - ["Years of experience in data analysis", "7"]
+    - ["English proficiency", "Intermediate — professional reading and writing"]
+    - ["Spanish proficiency", "Basic"]
+    - ["Are you authorized to work in the EU?", "No — I would require visa sponsorship (e.g. EU Blue Card)"]
+    - ["Can you work remotely from Brazil?", "Yes, as a contractor or through an Employer of Record"]
+    - ["Willing to relocate?", "Yes"]
+    - ["Time zone", "Brasília (UTC−3), 4–5 hours of overlap with CET"]
+    - ["Highest education", "B.Sc. in Data Science (in progress, expected 2027)"]
+    - ["Certifications", "Certified ScrumMaster (CSM) and Certified Scrum Developer (CSD) — Scrum Alliance"]
+    - ["LinkedIn", "https://www.linkedin.com/in/iago-ravi"]
+    - ["GitHub", "https://github.com/IagoRavi"]
+    - ["Portfolio", "https://iagoravi.github.io"]
+  pt:
+    - ["Anos de experiência com Power BI", "4"]
+    - ["Anos de experiência com SQL", "4"]
+    - ["Anos de experiência com Python", "2"]
+    - ["Anos de experiência com análise de dados", "7"]
+    - ["Nível de inglês", "Intermediário (leitura e escrita técnica)"]
+    - ["Formação", "Bacharelado em Ciência de Dados (em andamento, conclusão em 2027)"]
+    - ["Certificações", "Certified ScrumMaster (CSM) e Certified Scrum Developer (CSD) — Scrum Alliance"]
+    - ["LinkedIn", "https://www.linkedin.com/in/iago-ravi"]
+    - ["GitHub", "https://github.com/IagoRavi"]

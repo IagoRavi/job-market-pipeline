@@ -6,7 +6,7 @@ from collections import Counter
 
 import yaml
 
-from . import db, digest, llm, report, sources, tracking, triage
+from . import db, digest, linkedin, llm, report, sources, tracking, triage
 from .common import AuthError, load_rates
 
 
@@ -95,7 +95,10 @@ def run(config_path="config.yaml", db_path="data/jobs.db", fixtures=None):
         con.commit()
         print(f"  IA avaliou: {rated} de {len(pending)} na fila")
 
-    # 3b. candidaturas registradas por você
+    # 3b. candidaturas: confirmações por e-mail do LinkedIn + o que você registrou no CSV
+    n_auto = tracking.register_auto(con, linkedin.LAST_APPLIED)
+    if n_auto:
+        print(f"  candidaturas novas detectadas no e-mail: {n_auto}")
     n_track = tracking.apply(con)
     con.commit()
     if n_track:
@@ -105,7 +108,7 @@ def run(config_path="config.yaml", db_path="data/jobs.db", fixtures=None):
     n = digest.build(con, cfg)
     con.commit()
     db.export_csv(con, "data/jobs.csv")
-    print(f"  relatório: data/relatorio.html ({report.build(con)} vagas no banco)")
+    print(f"  relatório: data/relatorio.html ({report.build(con, cfg)} vagas no banco)")
     print(f"  digest: {n} vagas")
 
 

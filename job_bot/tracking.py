@@ -2,13 +2,14 @@
 
 Colunas: id,status,data,observacao
   id      → o ID da vaga (botão "copiar" no relatório)
-  status  → aplicado | entrevista | recusado | oferta | ignorar
+  status  → aplicado | entrevista | recusado | oferta | encerrada | ignorar
+            (encerrada = vaga preenchida, link quebrado ou sem candidatura possível)
 """
 import csv
 import os
 
 STATUS = {"aplicado": "applied", "entrevista": "interview", "recusado": "rejected",
-          "oferta": "offer", "ignorar": "ignored"}
+          "oferta": "offer", "encerrada": "closed", "ignorar": "ignored"}
 PATH = "data/candidaturas.csv"
 
 
@@ -38,3 +39,37 @@ def apply(con, path=PATH):
             else:
                 n += 1
     return n
+
+
+def register_auto(con, applied, path=PATH):
+    """Candidaturas confirmadas por e-mail do LinkedIn → linha 'aplicado' no CSV (se ainda não houver)."""
+    if not applied:
+        return 0
+    import datetime as dt
+    known = set()
+    if os.path.exists(path):
+        with open(path, newline="", encoding="utf-8-sig") as f:
+            known = {(r.get("id") or "").strip() for r in csv.DictReader(f)}
+    added = []
+    for a in applied:
+        job_id = f"linkedin:{a['id']}"
+        if job_id in known:
+            continue
+        if not con.execute("SELECT 1 FROM jobs WHERE id=?", (job_id,)).fetchone():
+            con.execute("""INSERT INTO jobs (id, dedupe_key, source, ext_id, title, company, location, remote, url,
+                           description, tags, posted_at, first_seen, heur_score, heur_reasons, status, region, notified)
+                           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)""",
+                        (job_id, job_id, "linkedin", a["id"], a.get("title") or "(vaga do LinkedIn)",
+                         a.get("company") or "", a.get("location") or "", 0,
+                         f"https://www.linkedin.com/jobs/view/{a['id']}/", "", "candidatura via LinkedIn",
+                         a.get("date", ""), dt.date.today().isoformat(), 0, "registrada pelo e-mail", "applied",
+                         None))
+        added.append([job_id, "aplicado", a.get("date", ""), "auto: e-mail do LinkedIn"])
+        known.add(job_id)
+    if added:
+        new_file = not os.path.exists(path)
+        with open(path, "a", newline="", encoding="utf-8") as f:
+            if new_file:
+                f.write("id,status,data,observacao\n")
+            csv.writer(f).writerows(added)
+    return len(added)

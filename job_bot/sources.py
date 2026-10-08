@@ -9,6 +9,7 @@ import os
 import re
 import time
 
+from . import linkedin
 from .common import AuthError, clean_html, get_json, parse_salary_text, to_annual_eur
 
 
@@ -205,100 +206,6 @@ def gupy(cfg, rates):
     return out
 
 
-# ---------------------------------------------------------------- LinkedIn (via e-mail)
-_LI_ID = re.compile(r"linkedin\.com/(?:comm/)?jobs/view/(\d+)")
-
-
-def _parse_linkedin_alert(text):
-    """Extrai (id, título, empresa, local) do texto de um alerta de vagas do LinkedIn.
-    O texto vem em blocos 'Título / Empresa / Local / ... / link da vaga'."""
-    jobs, lines = [], [ln.strip() for ln in text.splitlines()]
-    for i, ln in enumerate(lines):
-        m = _LI_ID.search(ln)
-        if not m:
-            continue
-        block = []
-        for prev in reversed(lines[max(0, i - 8):i]):
-            if not prev or _LI_ID.search(prev) or prev.startswith("---"):
-                if block:
-                    break
-                continue
-            if prev.lower().startswith(("view job", "ver vaga", "candidatura simplificada", "easy apply",
-                                        "promovida", "promoted", "be an early applicant",
-                                        "seja um dos primeiros")):
-                continue
-            block.insert(0, prev)
-        block = [b for b in block if not re.match(r"^(\d+ (connections?|conex)|actively recruiting|recrutando)", b, re.I)]
-        if block:
-            title = block[0]
-            company = block[1] if len(block) > 1 else ""
-            location = block[2] if len(block) > 2 else ""
-            jobs.append((m.group(1), title, company, location))
-    return jobs
-
-
-def _parse_linkedin_html(raw):
-    """Plano B: no HTML, o título é o texto do link da vaga; empresa e local vêm logo depois."""
-    jobs, seen = [], set()
-    anchors = list(re.finditer(r'<a [^>]*href="([^"]*jobs/view/(\d+)[^"]*)"[^>]*>(.*?)</a>', raw, re.S | re.I))
-    for k, a in enumerate(anchors):
-        title = clean_html(a.group(3)).strip()
-        if not title or a.group(2) in seen or len(title) > 150:
-            continue
-        seen.add(a.group(2))
-        nxt = anchors[k + 1].start() if k + 1 < len(anchors) else a.end() + 1500
-        after = [ln.strip() for ln in clean_html(raw[a.end():nxt]).splitlines() if ln.strip()]
-        parts = re.split(r"\s+[·•]\s+", after[0]) if after else []
-        company = parts[0] if parts else ""
-        location = parts[1] if len(parts) > 1 else (after[1] if len(after) > 1 else "")
-        jobs.append((a.group(2), title, company, location))
-    return jobs
-
-
-def linkedin_alerts(cfg, rates):
-    """Lê os e-mails de alerta de vagas que o próprio LinkedIn manda para você.
-    Não acessa o LinkedIn: só a sua caixa de entrada (IMAP do Gmail, com senha de app)."""
-    user = os.getenv("GMAIL_USER") or os.getenv("SMTP_USER")
-    pwd = os.getenv("GMAIL_APP_PASSWORD") or os.getenv("SMTP_PASS")
-    if not (user and pwd):
-        print("  - linkedin: sem GMAIL_USER/GMAIL_APP_PASSWORD, pulando")
-        return []
-    since = (dt.date.today() - dt.timedelta(days=cfg.get("days_back", 3))).strftime("%d-%b-%Y")
-    out, seen = [], set()
-    with imaplib.IMAP4_SSL("imap.gmail.com") as m:
-        try:
-            m.login(user, pwd)
-        except imaplib.IMAP4.error as e:
-            raise AuthError(f"login IMAP recusado: {e}") from e
-        m.select("INBOX", readonly=True)
-        for sender in cfg.get("senders", ["jobalerts-noreply@linkedin.com"]):
-            _, ids = m.search(None, "FROM", f'"{sender}"', "SINCE", since)
-            for mid in ids[0].split():
-                _, msg_data = m.fetch(mid, "(RFC822)")
-                msg = email.message_from_bytes(msg_data[0][1])
-                text = ""
-                for part in msg.walk():
-                    if part.get_content_type() == "text/plain":
-                        text = part.get_payload(decode=True).decode(part.get_content_charset() or "utf-8", "replace")
-                        break
-                parsed = _parse_linkedin_alert(text) if text else []
-                if not parsed:  # sem parte de texto útil: lê o HTML
-                    for part in msg.walk():
-                        if part.get_content_type() == "text/html":
-                            parsed = _parse_linkedin_html(part.get_payload(decode=True).decode(
-                                part.get_content_charset() or "utf-8", "replace"))
-                            break
-                for job_id, title, company, location in parsed:
-                    if job_id in seen:
-                        continue
-                    seen.add(job_id)
-                    out.append(_job("linkedin", job_id, title, company,
-                                    f"https://www.linkedin.com/jobs/view/{job_id}/",
-                                    location=location, remote=any(w in location.lower() for w in ("remote", "remoto")),
-                                    posted_at=dt.date.today().isoformat()))
-    return out
-
-
 ALL = {"arbeitnow": arbeitnow, "remotive": remotive, "remoteok": remoteok, "himalayas": himalayas,
        "greenhouse": greenhouse, "lever": lever, "ashby": ashby, "adzuna": adzuna,
-       "gupy": gupy, "linkedin": linkedin_alerts}
+       "gupy": gupy, "linkedin": linkedin.collect}

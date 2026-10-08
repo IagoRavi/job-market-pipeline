@@ -81,14 +81,15 @@ def to_annual_eur(value, currency, rates, period=None):
     return round(v * rates.get((currency or "EUR").upper(), 1.0))
 
 
-_CUR = {"$": "USD", "€": "EUR", "£": "GBP", "usd": "USD", "eur": "EUR", "gbp": "GBP"}
+_CUR = {"r$": "BRL", "brl": "BRL", "$": "USD", "€": "EUR", "£": "GBP", "usd": "USD", "eur": "EUR", "gbp": "GBP"}
 
 
 def parse_salary_text(text, rates):
     """'$60k - $80k' / '€50,000 – 65,000' -> (min_eur, max_eur). Estimativa."""
     if not text:
         return None, None
-    t = text.lower().replace(",", "")
+    t = re.sub(r"(?<=\d)\.(?=\d{3}\b)", "", text.lower())  # 10.000 → 10000
+    t = t.replace(",", "")
     cur = next((c for s, c in _CUR.items() if s in t), "USD")
     nums = []
     for n, k in re.findall(r"(\d+(?:\.\d+)?)\s*(k)?", t):
@@ -97,6 +98,7 @@ def parse_salary_text(text, rates):
             nums.append(v)
     if not nums:
         return None, None
-    period = "hour" if ("hour" in t or "/h" in t) else "month" if ("month" in t or "/m" in t) else None
+    period = ("hour" if re.search(r"hour|hora|/h", t) else "month" if re.search(r"month|mês|mes\b|/m", t)
+              else "year" if re.search(r"year|/yr|/y\b|ano", t) else None)
     vals = [to_annual_eur(v, cur, rates, period) for v in nums[:2]]
     return min(vals), max(vals)

@@ -21,27 +21,28 @@ brazil:
 
 # Fontes. Desative com enabled: false
 sources:
-  arbeitnow:  { enabled: true, max_pages: 4 }
-  remotive:   { enabled: true, categories: [data, software-dev] }
-  remoteok:   { enabled: true, tags: [data, analyst, sql] }
-  himalayas:  { enabled: true, max_pages: 5 }
+  # FOCO NO LINKEDIN (out/2026): as demais fontes ficam desligadas. Para religar, enabled: true.
+  arbeitnow:  { enabled: false, max_pages: 4 }
+  remotive:   { enabled: false, categories: [data, software-dev] }
+  remoteok:   { enabled: false, tags: [data, analyst, sql] }
+  himalayas:  { enabled: false, max_pages: 5 }
   # Páginas públicas de vagas de empresas específicas (ATS).
   # Pegue o identificador na URL da página de vagas da empresa:
   #   boards.greenhouse.io/<id>   jobs.lever.co/<id>   jobs.ashbyhq.com/<id>
   # Empresas-alvo (verificadas em 07/10/2026). Remoto global/EMEA ou escritórios na Europa.
   greenhouse:
-    enabled: true
+    enabled: false
     boards: [n26, adyen, getyourguide, hellofresh, celonis, contentful, wolt,  # Europa
              gitlab, canonical]                                                 # 100% remoto global
   lever:
-    enabled: true
+    enabled: false
     companies: [spotify]
   ashby:
-    enabled: true
+    enabled: false
     boards: [oyster, posthog, n8n, supabase]                                   # remote-first
   # Requer ADZUNA_APP_ID e ADZUNA_APP_KEY (cadastro gratuito em developer.adzuna.com)
   adzuna:
-    enabled: true
+    enabled: false
     countries: [de, nl, at, es, fr, gb, br]
     queries: ["power bi", "business intelligence", "data analyst sql"]
 
@@ -57,8 +58,10 @@ sources:
   # Requer GMAIL_USER e GMAIL_APP_PASSWORD (senha de app do Google)
   linkedin:
     enabled: true
-    days_back: 3
-    senders: [jobalerts-noreply@linkedin.com]
+    days_back: 3                     # quantos dias de e-mails ler a cada execução
+    senders: [jobalerts-noreply@linkedin.com, jobs-listings@linkedin.com]
+    track_applications: true         # registra sozinho as candidaturas confirmadas por e-mail
+    application_senders: [jobs-noreply@linkedin.com]
 
 # Palavras-chave
 keywords:
@@ -115,7 +118,11 @@ llm:
   min_heuristic_score: 40             # só manda pra IA o que passou no pré-filtro
   max_per_run: 25
 
+report:
+  max_age_days: 21                  # vagas mais antigas que isso ficam ocultas por padrão (provável encerramento)
+  default_source: linkedin          # fonte exibida ao abrir o relatório ("" = todas)
+
 digest:
   min_score: 60
   max_per_region: 10                # Europa, Remoto global, Brasil, Outras
-  report_url: "https://iagoravi.github.io/job-market-pipeline/"  # link do GitHub Pages, ex.: https://iagoravi.github.io/robo-vagas/
+  report_url: "https://iagoravi.github.io/job-market-pipeline/"                    # link do GitHub Pages, ex.: https://iagoravi.github.io/robo-vagas/
